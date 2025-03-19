@@ -1,0 +1,48 @@
+import boto3
+import json
+from botocore.exceptions import BotoCoreError, ClientError
+
+def get_s3_pricing(region='Asia Pacific (Mumbai)'):
+    try:
+        # Initialize a session using Amazon Pricing
+        pricing_client = boto3.client('pricing', region_name='us-east-1')
+
+        # Retrieve S3 pricing information for the specified region
+        response = pricing_client.get_products(
+            ServiceCode='AmazonS3',
+            Filters=[
+                {'Type': 'TERM_MATCH', 'Field': 'location', 'Value': region},
+                {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'Storage'},
+            ]
+        )
+
+        # Parse and display pricing information
+        for price_item in response['PriceList']:
+            product = json.loads(price_item)
+            attributes = product['product']['attributes']
+            sku = product['product']['sku']
+            storage_class = attributes.get('storageClass', 'N/A')
+            location = attributes.get('location', 'N/A')
+            price_dimensions = list(product['terms']['OnDemand'].values())[0]['priceDimensions']
+            price_per_gb_month = list(price_dimensions.values())[0]['pricePerUnit'].get('USD', 'N/A')
+
+            # Convert price per GB per month to price per GB per hour
+            if price_per_gb_month != 'N/A':
+                price_per_gb_hour = float(price_per_gb_month) / (30 * 24)
+                price_per_gb_hour = f"{price_per_gb_hour:.8f}"
+            else:
+                price_per_gb_hour = 'N/A'
+
+            print(f"SKU: {sku}")
+            print(f"Storage Class: {storage_class}")
+            print(f"Region: {location}")
+            print(f"Price per GB per Month (USD): ${price_per_gb_month}")
+            print(f"Price per GB per Hour (USD): ${price_per_gb_hour}")
+            print("-" * 40)
+
+    except (BotoCoreError, ClientError) as error:
+        print(f"An error occurred: {error}")
+
+if __name__ == "__main__":
+    print("Fetching AWS S3 Pricing Data... Please wait.\n")
+    get_s3_pricing()
