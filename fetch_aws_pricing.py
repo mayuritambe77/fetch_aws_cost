@@ -50,4 +50,12 @@ def get_pricing(service_code, region='Asia Pacific (Mumbai)'):
 
 if __name__ == "__main__":
     print("Fetching AWS Pricing Data... Please wait.\n")
-    get_pricing('AmazonSES')
+    get_pricing('AWSLambda')
+
+#EC2
+#S3
+#AmazonRDS
+#AmazonSES
+#AmazonDynamoDB
+#AmazonCloudFront
+#AmazonLambda
